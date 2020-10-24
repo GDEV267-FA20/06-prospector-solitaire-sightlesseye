@@ -10,7 +10,28 @@ using UnityEngine;
 /// </summary>
 
 public class Card : MonoBehaviour {
-    // This will be defined later
+    [Header("Set Dynamically")] 
+    public string suit; // Suit of the Card (C,D,H, or S) 
+    public int rank; // Rank of the Card (1-14) 
+    public Color color = Color.black; // Color to tint pips 
+    public string colS = "Black"; // or "Red". Name of the Color
+     
+    // This List holds all of the Decorator GameObjects 
+    public List<GameObject> decoGOs = new List<GameObject>();
+
+    // This List holds all of the Pip GameObjects 
+    public List<GameObject> pipGOs = new List<GameObject>(); 
+    public GameObject back; // The GameObject of the back of the card 
+    public CardDefinition def; // Parsed from DeckXML.xml
+
+    public bool faceUp { 
+        get { 
+            return (!back.activeSelf); 
+        } 
+        set { 
+            back.SetActive(!value); 
+        } 
+    }
 }
 
 [System.Serializable] // A Serializable class is able to be edited in the Inspector
@@ -29,3 +50,5 @@ public class CardDefinition {
     public int rank; // The rank (1-13) of this card
     public List<Decorator> pips = new List<Decorator>(); // Pips used
 }
+
+
