@@ -1,100 +1,67 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
-// An enum to handle all the possible scoring events
-public enum eScoreEvent {
-    draw,
-    mine,
-    mineGold,
-    gameWin,
-    gameLoss
-}
+// The Scoreboard class manages showing the score to the player
+public class Scoreboard : MonoBehaviour {
+    public static Scoreboard S; // The singleton for Scoreboard
 
-// ScoreManager handles all of the scoring
-public class ScoreManager : MonoBehaviour {
-    static private ScoreManager S;
-
-    static public int SCORE_FROM_PREV_ROUND = 0;
-    static public int HIGH_SCORE = 0;
+    [Header("Set in Inspector")]
+    public GameObject prefabFloatingScore;
 
     [Header("Set Dynamically")]
-    // Fields to track score info
-    public int chain = 0;
-    public int scoreRun = 0;
-    public int score = 0;
+    [SerializeField] private int _score = 0;
+    [SerializeField] private string _scoreString;
+
+    private Transform canvasTrans;
+
+    // The score property also sets the scoreString
+    public int score {
+        get {
+            return (_score);
+        }
+        set {
+            _score = value;
+            scoreString = _score.ToString("N0");
+        }
+    }
+
+    // The scoreString property also sets the Text.text
+    public string scoreString {
+        get {
+            return (_scoreString);
+        }
+        set {
+            _scoreString = value;
+            GetComponent<Text>().text = _scoreString;
+        }
+    }
 
     void Awake() {
         if (S == null) {
             S = this; // Set the private singleton
         } else {
-            Debug.LogError("ERROR: ScoreManager.Awake(): S is already set!");
+            Debug.LogError("ERROR: Scoreboard.Awake(): S is already set!");
         }
-
-        // Check for a high score in PlayerPrefs
-        if (PlayerPrefs.HasKey("ProspectorHighScore")) {
-            HIGH_SCORE = PlayerPrefs.GetInt("ProspectorHighScore");
-        }
-
-        // Add the score from last round, which will be >0 if it was a win
-        score += SCORE_FROM_PREV_ROUND;
-
-        // And reset the SCORE_FROM_PREV_ROUND
-        SCORE_FROM_PREV_ROUND = 0;
+        canvasTrans = transform.parent;
     }
 
-    static public void EVENT(eScoreEvent evt) {
-        try { // try-catch stops an error from breaking your program
-            S.Event(evt);
-        } catch (System.NullReferenceException nre) {
-            Debug.LogError ("ScoreManager:EVENT() called while S=null.\n" + nre );
-        }
+    // When called by SendMessage, this adds the fs.score to this.score
+    public void FSCallback(FloatingScore fs) {
+        score += fs.score;
     }
 
-    void Event(eScoreEvent evt) {
-        switch (evt) {
-            // Same things need to happen whether it's a draw, a win, or a loss
-            case eScoreEvent.draw:     // Drawing a card
-            case eScoreEvent.gameWin:  // Won the round
-            case eScoreEvent.gameLoss: // Lost the round
-                chain = 0;             // resets the score chain
-                score += scoreRun;     // add scoreRun to total score
-                scoreRun = 0;          // reset scoreRun
-                break;
-
-            case eScoreEvent.mine:    // Remove a mine card
-                chain++;              // increase the score chain
-                scoreRun += chain;    // add score for this card to run
-                break;
-        }
-
-        // This second switch statement handles round wins and losses
-        switch (evt) {
-            case eScoreEvent.gameWin:
-                // If it's a win, add the score to the next round
-                // static fields are NOT reset by SceneManager.LoadScene()
-                SCORE_FROM_PREV_ROUND = score;
-                print("You won this round! Round score: " + score);
-                break;
-
-            case eScoreEvent.gameLoss:
-                // If it's a loss, check against the high score
-                if (HIGH_SCORE <= score) {
-                    print("You got the high score! High score: " + score);
-                    HIGH_SCORE = score;
-                    PlayerPrefs.SetInt("ProspectorHighScore", score);
-                } else {
-                    print("Your final score for the game was: " + score);
-                }
-                break;
-
-            default:
-                print("score: " + score + " scoreRun:" + scoreRun + " chain:" + chain);
-                break;
-        }
+    // This will Instantiate a new FloatingScore GameObject and initialize it.
+    // It also returns a pointer to the FloatingScore created so that the
+    //  calling function can do more with it (like set fontSizes, and so on)
+    public FloatingScore CreateFloatingScore(int amt, List<Vector2> pts) {
+        GameObject go = Instantiate<GameObject>(prefabFloatingScore);
+        go.transform.SetParent(canvasTrans);
+        FloatingScore fs = go.GetComponent<FloatingScore>();
+        fs.score = amt;
+        fs.reportFinishTo = this.gameObject; // Set fs to call back to this
+        fs.Init(pts);
+        return (fs);
     }
-
-    static public int CHAIN { get { return S.chain; } } 
-    static public int SCORE { get { return S.score; } }
-    static public int SCORE_RUN { get { return S.scoreRun; } }
 }
