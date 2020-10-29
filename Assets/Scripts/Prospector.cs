@@ -87,7 +87,7 @@ public class Prospector : MonoBehaviour
         //}
 
         layout = GetComponent<Layout>();  // Get the Layout component
-        layout.ReadLayout(layoutXML.text); // Pass LayoutXML to it
+        layout.ReadLayoutTwo(layoutXML.text); // Pass LayoutTwoXML to it
         drawPile = ConvertListCardsToListCardProspectors(deck.cards);
         LayoutGame();
     }
@@ -133,11 +133,11 @@ public class Prospector : MonoBehaviour
 
             // This replaces the previous parent: deck.deckAnchor, which
             //  appears as _Deck in the Hierarchy when the scene is playing.
-            cp.transform.localPosition = new Vector3(layout.multiplier.x * 
-                                                     tSD.x, layout.multiplier.y * 
-                                                     tSD.y, -tSD.layerID);
-
+            cp.transform.localPosition = new Vector3(layout.multiplier.x * tSD.x, 
+                                                     layout.multiplier.y * tSD.y, 
+                                                     -tSD.layerID);
             // ^ Set the localPosition of the card based on slotDef
+
             cp.layoutID = tSD.id;
             cp.slotDef = tSD;
 
@@ -355,7 +355,7 @@ public class Prospector : MonoBehaviour
             ScoreManager.EVENT(eScoreEvent.gameLoss);
             FloatingScoreHandler(eScoreEvent.gameLoss);
         }
-
+         
         // Reload the scene, resetting the game
         // SceneManager.LoadScene("__Prospector_Scene_0"); // Now commented out!
 
@@ -366,7 +366,7 @@ public class Prospector : MonoBehaviour
 
     void ReloadLevel() {
         // Reload the scene, resetting the game
-        SceneManager.LoadScene("__Prospector_Scene_0");
+        SceneManager.LoadScene("Prospector_Scene_2");
     }
 
     // Return true if the two cards are adjacent in rank (A & K wrap around) 
